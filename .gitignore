@@ -10,3 +10,4 @@ temp/
 !public/profile_pictures
 public/profile_pictures/*
 !public/profile_pictures/default.png
+.env.local

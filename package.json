@@ -35,8 +35,8 @@
       "typeorm": "0.2.25"
    },
    "scripts": {
-      "start": "ts-node src/server.ts",
-      "start:dev": "nodemon src/server.ts",
+      "start": "DOTENV_CONFIG_PATH=.env.local ts-node src/server.ts",
+      "start:dev": "DOTENV_CONFIG_PATH=.env.local nodemon src/server.ts",
       "build": "tsc",
       "start:prod": "node dist/server.js",
       "migration:generate": "ts-node ./node_modules/typeorm/cli.js migration:generate -n",

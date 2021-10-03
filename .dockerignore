@@ -4,6 +4,6 @@
 !src
 !public
 # and files
-!.env.prod
+!.env
 !*.json
 !yarn.lock
