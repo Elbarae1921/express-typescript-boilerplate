@@ -3,14 +3,14 @@ import morgan from "morgan";
 import helmet from "helmet";
 import compression from "compression";
 
-import Icontroller from "./interfaces/controller.interface";
+import BaseController from "./types/controller.interface";
 import errorMiddleware from "./middleware/error.middleware";
 import fileupload from "express-fileupload";
 
 class App {
     public app: Express;
 
-    constructor(controllers: Icontroller[]) {
+    constructor(controllers: BaseController[]) {
         // initialize express
         this.app = express();
 
@@ -45,7 +45,7 @@ class App {
     }
 
     // set controllers and their routes
-    private initializeControllers(controllers: Icontroller[]) {
+    private initializeControllers(controllers: BaseController[]) {
         for(const controller of controllers) {
             this.app.use('/api', controller.router);
         }
