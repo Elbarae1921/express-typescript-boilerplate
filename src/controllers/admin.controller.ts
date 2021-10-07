@@ -1,32 +1,23 @@
-import { Request, Response, Router, NextFunction } from "express";
+import { Request, Response, NextFunction } from "express";
 import { compare, hash } from "bcrypt";
 
 import Admin from "../entities/admin.entity";
 import JSONResponse from "../utils/JSONResponse";
 import createJWT from "../utils/createJWT";
-import IController from "../interfaces/controller.interface";
+import BaseController from "../types/controller.interface";
 import validationMiddleware from "../middleware/validation.middleware";
 import authMiddleware from "../middleware/auth.middleware";
 import AdminLoginInput from "../dto/login.dto";
 import ChangePasswordInput from "../dto/change-password.dto";
 import HttpException from "../exceptions/HttpException";
 import WrongCredentialsException from "../exceptions/WrongCredentialsException";
+import { Controller, Handler } from "../decorators/routing";
 
-export default class AdminController implements IController {
+@Controller('admin')
+export default class AdminController extends BaseController {
 
-    public path = '/admin';
-    public router = Router();
-
-    constructor() {
-        this.initializeRoutes();
-    }
-
-    private initializeRoutes() {
-        this.router.post(`${this.path}/login`, validationMiddleware(AdminLoginInput), this.adminLogin);
-        this.router.post(`${this.path}/password`, authMiddleware("admin"), validationMiddleware(ChangePasswordInput), this.changePassword);
-    }
-
-    private adminLogin = async (request: Request, response: Response, next: NextFunction): Promise<any> => {
+    @Handler('post', '/login', validationMiddleware(AdminLoginInput))
+    async adminLogin(request: Request, response: Response, next: NextFunction) {
         // get cin and cne from the body
         const { password } = request.body;
         const email = request.body.email;
@@ -47,7 +38,8 @@ export default class AdminController implements IController {
         }
     }
 
-    private async changePassword(request: Request, response: Response, next: NextFunction) {
+    @Handler('post', '/password', authMiddleware("admin"), validationMiddleware(ChangePasswordInput))
+    async changePassword(request: Request, response: Response, next: NextFunction) {
         // get the current admin
         const admin = <Admin>response.locals.user;
         // get the old and new passwords from the request body

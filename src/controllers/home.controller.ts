@@ -1,9 +1,9 @@
-import { Request, Response, Router, NextFunction } from "express";
+import { Request, Response, NextFunction } from "express";
 
 import User from "../entities/user.entity";
 import JSONResponse from "../utils/JSONResponse";
 import createJWT from "../utils/createJWT";
-import IController from "../interfaces/controller.interface";
+import BaseController from "../types/controller.interface";
 import validationMiddleware from "../middleware/validation.middleware";
 import authMiddleware from "../middleware/auth.middleware";
 import WrongCredentialsException from "../exceptions/WrongCredentialsException";
@@ -12,28 +12,13 @@ import LoginInput from "../dto/login.dto";
 import { UploadImageInput } from "../dto/upload-image.dto";
 import { UpdatePfpInput } from "../dto/update-pfp.dto";
 import { compare } from "bcrypt";
+import { Controller, Handler } from "../decorators/routing";
 
-export default class HomeController implements IController {
+@Controller()
+export default class HomeController extends BaseController {
 
-    public path = '/';
-    public router = Router();
-
-    constructor() {
-        this.initializeRoutes();
-    }
-
-    private initializeRoutes() {
-        this.router.post(`${this.path}login`, validationMiddleware(LoginInput), this.login);
-        // endpoint for both user and admin
-        this.router.post(`${this.path}upload/image`, authMiddleware("none"), validationMiddleware(UploadImageInput), this.uploadImage);
-        // admin only endpoint
-        this.router.post(`${this.path}upload/file`, authMiddleware("admin"), this.uploadFile);
-        // user only endpoint
-        this.router.put(`${this.path}pfp`, authMiddleware("user"), validationMiddleware(UpdatePfpInput), this.updatePfp);
-        this.router.get(`${this.path}me`, authMiddleware("user"), this.me);
-    }
-
-    private login = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+    @Handler('post', '/login', validationMiddleware(LoginInput))
+    async login(req: Request, res: Response, next: NextFunction): Promise<any> {
         // get cin and cne from the body
         const email = req.body.email;
         const password = req.body.password;
@@ -54,13 +39,15 @@ export default class HomeController implements IController {
         }
     }
 
-    private async me(_: Request, response: Response) {
+    @Handler('get', '/me', authMiddleware("none"))
+    async me(_: Request, response: Response) {
         // get the user info
         const user = response.locals.user;
         return JSONResponse.success(response, user);
     }
 
-    private async uploadImage(request: Request, response: Response, next: NextFunction) {
+    @Handler('post', '/upload/image', authMiddleware("none"), validationMiddleware(UploadImageInput))
+    async uploadImage(request: Request, response: Response, next: NextFunction) {
         try {
             // get the image
             const photo = request.files?.image;
@@ -86,7 +73,8 @@ export default class HomeController implements IController {
         }
     }
 
-    private async uploadFile(request: Request, response: Response, next: NextFunction) {
+    @Handler('post', '/upload/file', authMiddleware("admin"))
+    async uploadFile(request: Request, response: Response, next: NextFunction) {
         try {
             // get the file
             const file = request.files?.file;
@@ -104,7 +92,8 @@ export default class HomeController implements IController {
         }
     }
 
-    private async updatePfp(request: Request, response: Response, next: NextFunction) {
+    @Handler('put', '/pfp', authMiddleware("user"))
+    async updatePfp(request: Request, response: Response, next: NextFunction) {
         try {
             // get file name
             const { photo }: UpdatePfpInput = request.body;
